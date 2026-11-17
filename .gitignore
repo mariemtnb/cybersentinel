@@ -1,0 +1,36 @@
+# Secrets
+.env
+*.pem
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+build/
+
+# Pipeline data (reproducible by running the pipeline; never committed)
+data/
+data-replay/
+*.duckdb
+*.duckdb.wal
+*.duckdb.tmp
+
+# dbt
+warehouse/target/
+warehouse/logs/
+warehouse/dbt_packages/
+warehouse/.user.yml
+logs/
+
+# OS / editors
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Course material kept locally (not part of the project repository)
+lab_solution-*.zip
+Projet DataOps.pdf
