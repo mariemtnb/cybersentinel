@@ -101,4 +101,7 @@ jobs:
       - run: docker build -t cybersentinel:ci .
       - name: Image can import the package and dbt
         run: docker run --rm cybersentinel:ci python -c "import cybersentinel, dbt.adapters.duckdb, prefect, streamlit; print('ok')"
-      - run: docker compose config --quiet
+      - name: Compose file is valid
+        run: docker compose config --quiet
+        env:
+          S3_SECRET_KEY: ci-placeholder-not-a-secret  # compose requires a value; nothing is started here

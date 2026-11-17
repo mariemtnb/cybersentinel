@@ -62,6 +62,10 @@ def load_contract(path: Path) -> Contract:
     columns = []
     for prop in obj.get("properties") or []:
         ltype = prop.get("logicalType")
+        # ODCS v3 has no "timestamp" logical type: a timestamp is a `date` whose physical type is
+        # timestamp. We keep the distinction because timestamps are parsed as UTC date-times.
+        if ltype == "date" and str(prop.get("physicalType", "")).lower() in ("timestamp", "timestamptz"):
+            ltype = "timestamp"
         if ltype not in SUPPORTED_TYPES:
             raise ContractError(f"{path}: column {prop.get('name')} has unsupported logicalType {ltype}")
         options = prop.get("logicalTypeOptions") or {}

@@ -48,5 +48,6 @@ schema:
         logicalType: string
         required: true
       - name: checked_at
-        logicalType: timestamp
+        logicalType: date
+        physicalType: timestamp
         required: true

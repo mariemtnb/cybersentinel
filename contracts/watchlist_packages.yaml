@@ -44,5 +44,6 @@ schema:
         logicalTypeOptions:
           minimum: 0
       - name: checked_at
-        logicalType: timestamp
+        logicalType: date
+        physicalType: timestamp
         required: true

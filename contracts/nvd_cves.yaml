@@ -33,12 +33,14 @@ schema:
       - name: source_identifier
         logicalType: string
       - name: published
-        logicalType: timestamp
+        logicalType: date
+        physicalType: timestamp
         required: true
         logicalTypeOptions:
           minimum: "1988-01-01"
       - name: last_modified
-        logicalType: timestamp
+        logicalType: date
+        physicalType: timestamp
         required: true
       - name: vuln_status
         logicalType: string

@@ -41,12 +41,15 @@ schema:
       - name: details
         logicalType: string
       - name: published
-        logicalType: timestamp
+        logicalType: date
+        physicalType: timestamp
       - name: modified
-        logicalType: timestamp
+        logicalType: date
+        physicalType: timestamp
         required: true
       - name: withdrawn
-        logicalType: timestamp
+        logicalType: date
+        physicalType: timestamp
       - name: severity_label
         logicalType: string
       - name: cvss_type
