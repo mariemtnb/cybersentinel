@@ -1,0 +1,6 @@
+# Development and CI tools, on top of the runtime dependencies.
+# datacontract-cli is installed separately in CI (its own job) because it pins its own
+# DuckDB version, which conflicts with the runtime pin above.
+-r requirements.txt
+pytest==9.2.0
+ruff==0.17.5

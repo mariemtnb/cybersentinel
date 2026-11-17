@@ -1,0 +1,48 @@
+# Data contract — FIRST EPSS scores (one row per CVE per day).
+version: 1.0.0
+kind: DataContract
+apiVersion: v3.0.2
+id: epss_scores
+name: FIRST EPSS daily scores
+status: active
+description:
+  purpose: Predicted probability (0–1) that a CVE is exploited in the next 30 days, and its percentile. A prediction, not proof.
+  usage: EPSS signal of the prioritization engine and the EPSS trend charts.
+servers:
+  - server: ci
+    type: local
+    format: parquet
+    path: ./tests/fixtures/contracts/epss_scores.parquet
+customProperties:
+  - property: primaryKey
+    value: [cve_id, score_date]
+  - property: maxRejectRate
+    value: 0.01
+  - property: minRows
+    value: 0
+schema:
+  - name: epss_scores
+    physicalType: table
+    properties:
+      - name: cve_id
+        logicalType: string
+        required: true
+        logicalTypeOptions:
+          pattern: "^CVE-\\d{4}-\\d{4,}$"
+      - name: score_date
+        logicalType: date
+        required: true
+        logicalTypeOptions:
+          minimum: "2021-04-14"
+      - name: epss
+        logicalType: number
+        required: true
+        logicalTypeOptions:
+          minimum: 0
+          maximum: 1
+      - name: percentile
+        logicalType: number
+        required: true
+        logicalTypeOptions:
+          minimum: 0
+          maximum: 1

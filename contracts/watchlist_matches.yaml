@@ -1,0 +1,52 @@
+# Data contract — our verdict for each (watched package, OSV advisory) pair.
+version: 1.0.0
+kind: DataContract
+apiVersion: v3.0.2
+id: watchlist_matches
+name: Watchlist package matches
+status: active
+description:
+  purpose: Whether each watched package version is affected by each advisory OSV returned, after re-checking the ranges.
+  usage: Watchlist signal of the prioritization engine and the Package Exposure page.
+servers:
+  - server: ci
+    type: local
+    format: parquet
+    path: ./tests/fixtures/contracts/watchlist_matches.parquet
+customProperties:
+  - property: primaryKey
+    value: [package_name, ecosystem, package_version, osv_id]
+  - property: maxRejectRate
+    value: 0.0
+  - property: minRows
+    value: 0
+schema:
+  - name: watchlist_matches
+    physicalType: table
+    properties:
+      - name: package_name
+        logicalType: string
+        required: true
+      - name: ecosystem
+        logicalType: string
+        required: true
+      - name: package_version
+        logicalType: string
+        required: true
+      - name: osv_id
+        logicalType: string
+        required: true
+      - name: match_status
+        logicalType: string
+        required: true
+        customProperties:
+          - property: allowedValues
+            value: ["affected", "not_affected", "unverified"]
+      - name: fixed_version
+        logicalType: string
+      - name: evidence
+        logicalType: string
+        required: true
+      - name: checked_at
+        logicalType: timestamp
+        required: true

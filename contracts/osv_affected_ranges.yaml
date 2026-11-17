@@ -1,0 +1,52 @@
+# Data contract — affected version ranges of OSV advisories (one row per range segment).
+version: 1.0.0
+kind: DataContract
+apiVersion: v3.0.2
+id: osv_affected_ranges
+name: OSV affected version ranges
+status: active
+description:
+  purpose: The version intervals in which a package is affected ([introduced, fixed) or [introduced, last_affected]).
+  usage: Shows fixed versions and explains why a watchlist package is (or is not) affected.
+servers:
+  - server: ci
+    type: local
+    format: parquet
+    path: ./tests/fixtures/contracts/osv_affected_ranges.parquet
+customProperties:
+  - property: primaryKey
+    value: [osv_id, range_index, introduced, fixed, last_affected]
+  - property: maxRejectRate
+    value: 0.05
+  - property: minRows
+    value: 0
+schema:
+  - name: osv_affected_ranges
+    physicalType: table
+    properties:
+      - name: osv_id
+        logicalType: string
+        required: true
+      - name: ecosystem
+        logicalType: string
+        required: true
+      - name: package_name
+        logicalType: string
+        required: true
+      - name: range_type
+        logicalType: string
+        required: true
+        customProperties:
+          - property: allowedValues
+            value: ["ECOSYSTEM", "SEMVER", "GIT"]
+      - name: range_index
+        logicalType: integer
+        required: true
+        logicalTypeOptions:
+          minimum: 0
+      - name: introduced
+        logicalType: string
+      - name: fixed
+        logicalType: string
+      - name: last_affected
+        logicalType: string

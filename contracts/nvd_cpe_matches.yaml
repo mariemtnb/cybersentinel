@@ -1,0 +1,46 @@
+# Data contract — vendor/product pairs extracted from NVD CPE configurations.
+version: 1.0.0
+kind: DataContract
+apiVersion: v3.0.2
+id: nvd_cpe_matches
+name: NVD CPE vendor/product matches
+status: active
+description:
+  purpose: Which vendors and products each CVE concerns, according to NVD's CPE configurations.
+  usage: Vendor exposure analysis (dim_vendor) for CVEs that are not in CISA KEV.
+servers:
+  - server: ci
+    type: local
+    format: parquet
+    path: ./tests/fixtures/contracts/nvd_cpe_matches.parquet
+customProperties:
+  - property: primaryKey
+    value: [cve_id, part, vendor, product]
+  - property: maxRejectRate
+    value: 0.02
+  - property: minRows
+    value: 0
+schema:
+  - name: nvd_cpe_matches
+    physicalType: table
+    properties:
+      - name: cve_id
+        logicalType: string
+        required: true
+        logicalTypeOptions:
+          pattern: "^CVE-\\d{4}-\\d{4,}$"
+      - name: part
+        logicalType: string
+        required: true
+        customProperties:
+          - property: allowedValues
+            value: ["a", "o", "h"]
+      - name: vendor
+        logicalType: string
+        required: true
+      - name: product
+        logicalType: string
+        required: true
+      - name: vulnerable
+        logicalType: boolean
+        required: true

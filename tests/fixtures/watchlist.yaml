@@ -1,0 +1,6 @@
+# Watchlist used by the offline tests and the replay mode (subset of config/watchlist.yaml).
+packages:
+  - {name: org.apache.logging.log4j:log4j-core, ecosystem: Maven, version: 2.14.1, owner: legacy-billing}
+  - {name: org.springframework:spring-beans, ecosystem: Maven, version: 5.3.17, owner: legacy-billing}
+  - {name: Flask, ecosystem: PyPI, version: 2.3.0, owner: internal-tools}
+  - {name: express, ecosystem: npm, version: 4.18.0, owner: frontend}

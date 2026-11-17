@@ -1,0 +1,76 @@
+# Data contract — NVD CVE records (flattened, one row per CVE, latest version only).
+version: 1.0.0
+kind: DataContract
+apiVersion: v3.0.2
+id: nvd_cves
+name: NVD CVE records
+status: active
+description:
+  purpose: Detailed CVE information from NIST NVD — description, CVSS score and severity, CWE, dates.
+  usage: Main descriptive source for vulnerabilities and the CVSS signal of the prioritization engine.
+servers:
+  - server: ci
+    type: local
+    format: parquet
+    path: ./tests/fixtures/contracts/nvd_cves.parquet
+customProperties:
+  - property: primaryKey
+    value: [cve_id]
+  - property: maxRejectRate
+    value: 0.02
+  - property: minRows
+    value: 0
+schema:
+  - name: nvd_cves
+    physicalType: table
+    properties:
+      - name: cve_id
+        logicalType: string
+        required: true
+        unique: true
+        logicalTypeOptions:
+          pattern: "^CVE-\\d{4}-\\d{4,}$"
+      - name: source_identifier
+        logicalType: string
+      - name: published
+        logicalType: timestamp
+        required: true
+        logicalTypeOptions:
+          minimum: "1988-01-01"
+      - name: last_modified
+        logicalType: timestamp
+        required: true
+      - name: vuln_status
+        logicalType: string
+        required: true
+      - name: description
+        logicalType: string
+      - name: cvss_version
+        logicalType: string
+        customProperties:
+          - property: allowedValues
+            value: ["2.0", "3.0", "3.1", "4.0"]
+      - name: cvss_base_score
+        logicalType: number
+        logicalTypeOptions:
+          minimum: 0
+          maximum: 10
+      - name: cvss_severity
+        logicalType: string
+        customProperties:
+          - property: allowedValues
+            value: ["NONE", "LOW", "MEDIUM", "HIGH", "CRITICAL"]
+      - name: cvss_vector
+        logicalType: string
+      - name: cvss_source
+        logicalType: string
+      - name: cwe_ids
+        logicalType: string
+      - name: reference_count
+        logicalType: integer
+        required: true
+        logicalTypeOptions:
+          minimum: 0
+      - name: has_patch_reference
+        logicalType: boolean
+        required: true

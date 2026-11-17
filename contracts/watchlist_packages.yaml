@@ -1,0 +1,48 @@
+# Data contract — the watchlist as evaluated in a run (one row per watched package version).
+version: 1.0.0
+kind: DataContract
+apiVersion: v3.0.2
+id: watchlist_packages
+name: Watchlist packages
+status: active
+description:
+  purpose: The software inventory monitored through OSV, loaded from config/watchlist.yaml at each run.
+  usage: dim_package; lets packages with zero advisories still appear on the Package Exposure page.
+servers:
+  - server: ci
+    type: local
+    format: parquet
+    path: ./tests/fixtures/contracts/watchlist_packages.parquet
+customProperties:
+  - property: primaryKey
+    value: [package_name, ecosystem, package_version]
+  - property: maxRejectRate
+    value: 0.0
+  - property: minRows
+    value: 1
+schema:
+  - name: watchlist_packages
+    physicalType: table
+    properties:
+      - name: package_name
+        logicalType: string
+        required: true
+      - name: ecosystem
+        logicalType: string
+        required: true
+        customProperties:
+          - property: allowedValues
+            value: ["PyPI", "npm", "Maven", "Go", "RubyGems", "NuGet", "crates.io", "Packagist"]
+      - name: package_version
+        logicalType: string
+        required: true
+      - name: owner
+        logicalType: string
+      - name: advisories_returned
+        logicalType: integer
+        required: true
+        logicalTypeOptions:
+          minimum: 0
+      - name: checked_at
+        logicalType: timestamp
+        required: true

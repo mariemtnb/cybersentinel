@@ -1,0 +1,58 @@
+# Data contract — OSV advisories returned for the watchlist packages.
+version: 1.0.0
+kind: DataContract
+apiVersion: v3.0.2
+id: osv_vulnerabilities
+name: OSV advisories
+status: active
+description:
+  purpose: Open-source package advisories (GitHub, PyPA, npm…) that may affect watchlist packages.
+  usage: Links vulnerabilities to the software inventory; provides affected ranges and fixed versions.
+servers:
+  - server: ci
+    type: local
+    format: parquet
+    path: ./tests/fixtures/contracts/osv_vulnerabilities.parquet
+customProperties:
+  - property: primaryKey
+    value: [osv_id]
+  - property: maxRejectRate
+    value: 0.05
+  - property: minRows
+    value: 0
+schema:
+  - name: osv_vulnerabilities
+    physicalType: table
+    properties:
+      - name: osv_id
+        logicalType: string
+        required: true
+        unique: true
+        logicalTypeOptions:
+          pattern: "^[A-Za-z0-9]+(-[A-Za-z0-9._]+)+$"
+      - name: cve_id
+        logicalType: string
+        logicalTypeOptions:
+          pattern: "^CVE-\\d{4}-\\d{4,}$"
+      - name: aliases
+        logicalType: string
+      - name: summary
+        logicalType: string
+      - name: details
+        logicalType: string
+      - name: published
+        logicalType: timestamp
+      - name: modified
+        logicalType: timestamp
+        required: true
+      - name: withdrawn
+        logicalType: timestamp
+      - name: severity_label
+        logicalType: string
+      - name: cvss_type
+        logicalType: string
+      - name: cvss_vector
+        logicalType: string
+      - name: affected_json
+        logicalType: string
+        required: true
