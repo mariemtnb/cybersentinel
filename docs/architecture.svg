@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 720" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="13">
+  <title>CyberSentinel architecture</title>
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#52514e"/>
+    </marker>
+    <style>
+      .box{fill:#ffffff;stroke:#c3c2b7;stroke-width:1.2;rx:8}
+      .src{fill:#eef4fc;stroke:#2a78d6}
+      .gate{fill:#fdf1ea;stroke:#eb6834}
+      .store{fill:#eef8f3;stroke:#1baf7a}
+      .ops{fill:#f6f5f2;stroke:#8a8983}
+      .t{fill:#0b0b0b;font-weight:600}
+      .s{fill:#52514e;font-size:11.5px}
+      .lane{fill:#52514e;font-size:11px;letter-spacing:.08em}
+      line,path.f{stroke:#52514e;stroke-width:1.4;fill:none;marker-end:url(#a)}
+    </style>
+  </defs>
+  <rect width="1100" height="720" fill="#fcfcfb"/>
+
+  <text x="20" y="28" class="lane">1 · SOURCES (public APIs)</text>
+  <rect x="20" y="40" width="250" height="56" class="box src"/><text x="34" y="63" class="t">CISA KEV (JSON feed)</text><text x="34" y="82" class="s">confirmed exploitation · full catalog</text>
+  <rect x="290" y="40" width="250" height="56" class="box src"/><text x="304" y="63" class="t">NVD CVE API 2.0</text><text x="304" y="82" class="s">CVSS, CWE, CPE · incremental, 6 s pacing</text>
+  <rect x="560" y="40" width="250" height="56" class="box src"/><text x="574" y="63" class="t">OSV querybatch + vulns</text><text x="574" y="82" class="s">watchlist packages · affected ranges</text>
+  <rect x="830" y="40" width="250" height="56" class="box src"/><text x="844" y="63" class="t">FIRST EPSS API</text><text x="844" y="82" class="s">exploit probability · daily history</text>
+
+  <text x="20" y="128" class="lane">2 · EXTRACT (cybersentinel/ingestion, shared HTTP client: timeout, retry, backoff, rate limit)</text>
+  <rect x="20" y="140" width="1060" height="44" class="box"/>
+  <text x="34" y="167" class="t">Connectors: fetch() keeps original payloads · parse() flattens to tables · schema-drift and dataset checks (KEV count)</text>
+  <line x1="145" y1="96" x2="145" y2="138"/><line x1="415" y1="96" x2="415" y2="138"/><line x1="685" y1="96" x2="685" y2="138"/><line x1="955" y1="96" x2="955" y2="138"/>
+
+  <text x="20" y="216" class="lane">3 · RAW LAYER (immutable)</text>
+  <rect x="20" y="228" width="330" height="74" class="box store"/><text x="34" y="252" class="t">Object store: S3 / SeaweedFS / local</text>
+  <text x="34" y="271" class="s">raw/&lt;source&gt;/ingest_date=/run_id=/*.json.gz</text><text x="34" y="289" class="s">validated/ and rejected/ as Parquet</text>
+
+  <text x="380" y="216" class="lane">4 · VALIDATE (data contracts)</text>
+  <rect x="380" y="228" width="330" height="74" class="box gate"/><text x="394" y="252" class="t">contracts/*.yaml (ODCS) → Pandera</text>
+  <text x="394" y="271" class="s">types · required · patterns · ranges · PK</text><text x="394" y="289" class="s">reject rate &gt; limit ⇒ source BLOCKED</text>
+
+  <rect x="740" y="228" width="340" height="74" class="box ops"/><text x="754" y="252" class="t">Quarantine (ops DB)</text>
+  <text x="754" y="271" class="s">every rejected row + reasons, never dropped</text><text x="754" y="289" class="s">shown on Pipeline Health</text>
+  <path class="f" d="M550,184 L550,226"/><path class="f" d="M380,265 L352,265"/><path class="f" d="M710,265 L738,265"/>
+
+  <text x="20" y="334" class="lane">5 · WAREHOUSE (DuckDB, working copy) — WRITE</text>
+  <rect x="20" y="346" width="1060" height="44" class="box store"/>
+  <text x="34" y="373" class="t">raw schema: idempotent UPSERT on primary keys + content hash · NVD watermark · EPSS history (cve, day)</text>
+  <path class="f" d="M545,302 L545,344"/>
+
+  <text x="20" y="422" class="lane">6 · TRANSFORM + AUDIT</text>
+  <rect x="20" y="434" width="200" height="74" class="box"/><text x="34" y="458" class="t">staging</text><text x="34" y="477" class="s">10 views: rename, cast</text><text x="34" y="494" class="s">stg_cisa_kev, stg_nvd_cves…</text>
+  <rect x="245" y="434" width="250" height="74" class="box"/><text x="259" y="458" class="t">intermediate</text><text x="259" y="477" class="s">canonical entity (dedup)</text><text x="259" y="494" class="s">risk signals · Python scoring model</text>
+  <rect x="520" y="434" width="180" height="74" class="box"/><text x="534" y="458" class="t">snapshot (SCD2)</text><text x="534" y="477" class="s">risk-state history</text><text x="534" y="494" class="s">→ change detection</text>
+  <rect x="725" y="434" width="355" height="74" class="box"/><text x="739" y="458" class="t">marts (star schema)</text><text x="739" y="477" class="s">fct_vulnerabilities · fct_package_exposure</text><text x="739" y="494" class="s">fct_vulnerability_changes · dims · health</text>
+  <path class="f" d="M220,471 L243,471"/><path class="f" d="M495,471 L518,471"/><path class="f" d="M700,471 L723,471"/>
+  <path class="f" d="M195,390 L195,432"/>
+  <text x="20" y="528" class="s">68 dbt data tests (unique, not_null, relationships, accepted_values, business rules) + 2 unit tests. Any failure ⇒ no publication.</text>
+
+  <text x="20" y="566" class="lane">7 · PUBLISH + SERVE</text>
+  <rect x="20" y="578" width="300" height="56" class="box store"/><text x="34" y="601" class="t">Published DuckDB (read-only)</text><text x="34" y="620" class="s">only audited data reaches users</text>
+  <rect x="350" y="578" width="260" height="56" class="box"/><text x="364" y="601" class="t">Streamlit dashboard</text><text x="364" y="620" class="s">5 pages · :8501</text>
+  <rect x="640" y="578" width="210" height="56" class="box ops"/><text x="654" y="601" class="t">Alerts</text><text x="654" y="620" class="s">ops.alerts · log · webhook</text>
+  <rect x="880" y="578" width="200" height="56" class="box ops"/><text x="894" y="601" class="t">Ops DB</text><text x="894" y="620" class="s">runs · sources · watermarks</text>
+  <path class="f" d="M900,508 L900,545 L290,545 L290,576"/><path class="f" d="M320,606 L348,606"/><path class="f" d="M610,606 L638,606"/>
+
+  <rect x="20" y="660" width="1060" height="44" class="box ops"/>
+  <text x="34" y="687" class="t">Orchestration: Prefect flow (daily 06:00 UTC + at start-up) · CI: GitHub Actions (lint, pytest, datacontract test, dbt build, docker build) · docker compose up</text>
+</svg>

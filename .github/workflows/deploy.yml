@@ -1,0 +1,48 @@
+# Continuous delivery to AWS — prepared but DISABLED until the team sets the repository
+# variable AWS_DEPLOY_ENABLED=true and the secrets listed in docs/deployment_aws.md.
+# Manual trigger only: nothing is deployed automatically and no AWS resource is created here.
+name: deploy
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+  id-token: write   # GitHub -> AWS OIDC, no long-lived AWS keys
+
+jobs:
+  image:
+    name: Build and push image to GHCR
+    if: vars.AWS_DEPLOY_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    outputs:
+      image: ${{ steps.meta.outputs.image }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: meta
+        run: echo "image=ghcr.io/${GITHUB_REPOSITORY,,}:${GITHUB_SHA::12}" >> "$GITHUB_OUTPUT"
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - run: docker build -t "${{ steps.meta.outputs.image }}" . && docker push "${{ steps.meta.outputs.image }}"
+
+  deploy:
+    name: Roll out on the EC2 instance (SSM)
+    needs: image
+    runs-on: ubuntu-latest
+    environment: production   # add required reviewers on this environment in GitHub settings
+    steps:
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+      - name: Pull the new image and restart the stack
+        run: |
+          aws ssm send-command \
+            --instance-ids "${{ secrets.EC2_INSTANCE_ID }}" \
+            --document-name AWS-RunShellScript \
+            --comment "cybersentinel ${GITHUB_SHA::12}" \
+            --parameters commands="cd /opt/cybersentinel && IMAGE=${{ needs.image.outputs.image }} docker compose pull && IMAGE=${{ needs.image.outputs.image }} docker compose up -d"

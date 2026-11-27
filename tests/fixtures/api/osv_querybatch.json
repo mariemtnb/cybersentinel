@@ -1,0 +1,114 @@
+{
+ "queries": [
+  {
+   "package": {
+    "name": "Flask",
+    "ecosystem": "PyPI"
+   },
+   "version": "2.3.0"
+  },
+  {
+   "package": {
+    "name": "express",
+    "ecosystem": "npm"
+   },
+   "version": "4.18.0"
+  },
+  {
+   "package": {
+    "name": "org.apache.logging.log4j:log4j-core",
+    "ecosystem": "Maven"
+   },
+   "version": "2.14.1"
+  },
+  {
+   "package": {
+    "name": "org.springframework:spring-beans",
+    "ecosystem": "Maven"
+   },
+   "version": "5.3.17"
+  }
+ ],
+ "results": [
+  {
+   "vulns": [
+    {
+     "id": "GHSA-68rp-wp8r-4726",
+     "modified": "2026-09-10T03:49:54.354981Z"
+    },
+    {
+     "id": "GHSA-m2qf-hxjv-5gpq",
+     "modified": "2026-09-10T03:50:01.763387Z"
+    },
+    {
+     "id": "PYSEC-2023-62",
+     "modified": "2023-11-08T04:12:28.231927Z"
+    },
+    {
+     "id": "PYSEC-2026-2151",
+     "modified": "2026-07-13T07:15:25.033843Z"
+    }
+   ]
+  },
+  {
+   "vulns": [
+    {
+     "id": "GHSA-qw6h-vgh9-j6wx",
+     "modified": "2026-09-10T03:50:18.298562Z"
+    },
+    {
+     "id": "GHSA-rv95-896h-c2vc",
+     "modified": "2026-09-10T03:50:10.750068Z"
+    }
+   ]
+  },
+  {
+   "vulns": [
+    {
+     "id": "GHSA-3pxv-7cmr-fjr4",
+     "modified": "2026-09-10T03:50:42.492278Z"
+    },
+    {
+     "id": "GHSA-6hg6-v5c8-fphq",
+     "modified": "2026-09-10T03:50:43.570169Z"
+    },
+    {
+     "id": "GHSA-7rjr-3q55-vv33",
+     "modified": "2026-10-02T20:30:05.438504Z"
+    },
+    {
+     "id": "GHSA-8489-44mv-ggj8",
+     "modified": "2026-06-09T10:45:14.253296Z"
+    },
+    {
+     "id": "GHSA-h383-gmxw-35v2",
+     "modified": "2026-10-26T15:30:05.719203Z"
+    },
+    {
+     "id": "GHSA-jfh8-c2jp-5v3q",
+     "modified": "2025-10-22T19:37:02.616807Z"
+    },
+    {
+     "id": "GHSA-p6xc-xr62-6r2g",
+     "modified": "2026-06-09T10:30:14.432177Z"
+    },
+    {
+     "id": "GHSA-vc5p-v9hr-52mj",
+     "modified": "2026-09-10T03:50:32.126499Z"
+    }
+   ]
+  },
+  {
+   "vulns": [
+    {
+     "id": "GHSA-36p3-wjmg-h94x",
+     "modified": "2025-10-22T19:34:48.935927Z"
+    },
+    {
+     "id": "GHSA-hh26-6xwr-ggv7",
+     "modified": "2024-03-14T21:14:57.079098Z"
+    }
+   ]
+  }
+ ]
+}

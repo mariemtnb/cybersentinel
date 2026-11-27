@@ -1,0 +1,14 @@
+# The paths come from environment variables set by the pipeline (cybersentinel/transform.py),
+# so dbt and the Python code always work on the same files. Defaults are for running dbt
+# by hand from this directory. No secret is needed: DuckDB is a local file.
+cybersentinel:
+  target: dev
+  outputs:
+    dev:
+      type: duckdb
+      path: "{{ env_var('CYBERSENTINEL_WAREHOUSE', '../data/warehouse/cybersentinel.duckdb') }}"
+      threads: 1
+      attach:
+        - path: "{{ env_var('CYBERSENTINEL_OPS_DB', '../data/state/pipeline_state.duckdb') }}"
+          alias: ops_db
+          read_only: true

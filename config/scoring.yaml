@@ -1,0 +1,51 @@
+# CyberSentinel prioritization rules.
+#
+# This is OUR transparent heuristic for ordering remediation work. It is not an industry
+# standard and not an authoritative risk score. Every vulnerability gets 0–100 points from
+# independent signals; the dashboard shows each signal's points so the result can be
+# challenged. See docs/prioritization.md for the reasoning behind each weight.
+version: 1
+
+signals:
+  cvss:
+    # points = base_score / 10 * max_points. Technical severity of the flaw.
+    max_points: 30
+    # When NVD has no CVSS score yet, use the OSV/GitHub severity label if present.
+    label_fallback_scores:
+      CRITICAL: 9.0
+      HIGH: 7.5
+      MODERATE: 5.0
+      MEDIUM: 5.0
+      LOW: 2.5
+  kev:
+    # Confirmed exploitation in the wild (CISA). The strongest single signal.
+    points: 30
+    ransomware_bonus: 5   # CISA reports known use in ransomware campaigns
+  epss:
+    # Predicted probability of exploitation in the next 30 days. Bands, because the EPSS
+    # distribution is very skewed (most CVEs are below 0.01). First matching band wins.
+    bands:
+      - {min: 0.50, points: 20}
+      - {min: 0.10, points: 14}
+      - {min: 0.01, points: 6}
+      - {min: 0.00, points: 0}
+  watchlist:
+    # At least one package in our inventory is in an affected range (verified by us).
+    points: 15
+  fix_available:
+    # A fixed version exists for an affected watchlist package — remediation is actionable now.
+    # Only counted when OSV states a fixed version; unknown is never treated as "available".
+    points: 5
+
+max_score: 100
+
+tiers:   # first match wins, evaluated from the top
+  - {name: Critical, min_score: 65}
+  - {name: High, min_score: 45}
+  - {name: Medium, min_score: 25}
+  - {name: Low, min_score: 0}
+
+# Floors: business rules that override the points when they would give a lower tier.
+floors:
+  - {when: [kev, watchlist], tier: Critical, reason: "confirmed exploited AND present in our inventory"}
+  - {when: [kev], tier: High, reason: "confirmed exploited in the wild"}

@@ -1,0 +1,110 @@
+version: 2
+
+models:
+  - name: fct_vulnerabilities
+    description: One row per canonical vulnerability with every risk signal, the priority score, tier and explanation.
+    columns:
+      - name: vulnerability_id
+        description: CVE ID, or the OSV advisory ID when no CVE exists.
+        data_tests: [unique, not_null]
+      - name: vendor_key
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_vendor')
+                field: vendor_key
+      - name: priority_tier
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ["Critical", "High", "Medium", "Low"]
+      - name: priority_score
+        data_tests: [not_null]
+      - name: priority_reason
+        data_tests: [not_null]
+
+  - name: dim_vulnerability
+    description: Descriptive attributes of each vulnerability.
+    columns:
+      - name: vulnerability_id
+        data_tests:
+          - unique
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('fct_vulnerabilities')
+                field: vulnerability_id
+
+  - name: dim_vendor
+    columns:
+      - name: vendor_key
+        data_tests: [unique, not_null]
+
+  - name: dim_package
+    description: Watched packages from config/watchlist.yaml.
+    columns:
+      - name: package_key
+        data_tests: [unique, not_null]
+
+  - name: dim_date
+    columns:
+      - name: date_day
+        data_tests: [unique, not_null]
+
+  - name: fct_package_exposure
+    description: Watched package × vulnerability affecting it (match_status affected or unverified).
+    columns:
+      - name: exposure_id
+        data_tests: [unique, not_null]
+      - name: package_key
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('dim_package')
+                field: package_key
+      - name: vulnerability_id
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('fct_vulnerabilities')
+                field: vulnerability_id
+      - name: match_status
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ["affected", "unverified"]
+
+  - name: fct_vulnerability_changes
+    description: Change events detected between runs (new, KEV added, CVSS/priority/exposure changes, EPSS moves).
+    columns:
+      - name: event_id
+        data_tests: [unique, not_null]
+      - name: event_type
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ["NEW_VULNERABILITY", "KEV_ADDED", "CVSS_CHANGED", "PRIORITY_ESCALATED", "PRIORITY_LOWERED",
+                         "WATCHLIST_EXPOSURE_CHANGED", "EPSS_INCREASE", "EPSS_DECREASE"]
+
+  - name: fct_epss_history
+    columns:
+      - name: epss_id
+        data_tests: [unique, not_null]
+
+  - name: fct_priority_history
+    columns:
+      - name: priority_history_id
+        data_tests: [unique, not_null]
+
+  - name: fct_source_health
+    description: Per-source health (last status, last success, volumes, errors) at build time.
+    columns:
+      - name: source
+        data_tests:
+          - unique
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ["cisa_kev", "nvd", "osv", "epss"]

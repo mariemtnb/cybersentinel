@@ -1,0 +1,32 @@
+name: cybersentinel
+version: "1.0"
+config-version: 2
+profile: cybersentinel
+
+model-paths: ["models"]
+snapshot-paths: ["snapshots"]
+test-paths: ["tests"]
+macro-paths: ["macros"]
+target-path: "target"
+clean-targets: ["target", "dbt_packages", "logs"]
+
+vars:
+  run_id: "manual"            # set by the pipeline for each run
+  is_baseline: false          # true for the first published run: no "new vulnerability" alerts
+  epss_jump_threshold: 0.10   # absolute EPSS change that counts as a significant change
+
+models:
+  cybersentinel:
+    staging:
+      +schema: staging
+      +materialized: view
+    intermediate:
+      +schema: intermediate
+      +materialized: table
+    marts:
+      +schema: marts
+      +materialized: table
+
+snapshots:
+  cybersentinel:
+    +target_schema: snapshots

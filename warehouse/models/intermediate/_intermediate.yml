@@ -1,0 +1,98 @@
+version: 2
+
+models:
+  - name: int_vulnerability_enrichment
+    description: Canonical vulnerability entity (one row per CVE, or per OSV ID when no CVE exists).
+    columns:
+      - name: vulnerability_id
+        data_tests: [unique, not_null]
+
+  - name: int_affected_packages
+    description: Watched package × vulnerability, after merging duplicate advisories.
+    data_tests:
+      - unique_combination:
+          arguments:
+            columns: [package_key, vulnerability_id]
+    columns:
+      - name: vulnerability_id
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('int_vulnerability_enrichment')
+                field: vulnerability_id
+
+  - name: int_risk_signals
+    description: The prioritization signals per vulnerability.
+    columns:
+      - name: vulnerability_id
+        data_tests: [unique, not_null]
+
+  - name: int_vulnerability_priority
+    description: Signals + points per signal + priority score, tier and explanation (Python model).
+    config:
+      scoring_path: "{{ env_var('CYBERSENTINEL_SCORING', '../config/scoring.yaml') }}"
+    columns:
+      - name: vulnerability_id
+        data_tests: [unique, not_null]
+      - name: priority_tier
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ["Critical", "High", "Medium", "Low"]
+
+  - name: int_vulnerability_state
+    description: Tracked risk-state fields + the observing run, fed to the snapshot.
+
+  - name: int_vulnerability_history
+    description: Versions of each vulnerability's risk state with the previous values (for change detection).
+    columns:
+      - name: version_id
+        data_tests: [unique, not_null]
+
+unit_tests:
+  - name: test_duplicate_advisories_are_merged_and_affected_wins
+    description: GHSA and PYSEC advisories for the same CVE give one row; 'affected' beats 'unverified'.
+    model: int_affected_packages
+    given:
+      - input: ref('stg_watchlist_matches')
+        rows:
+          - {package_key: p1, osv_id: GHSA-aaaa, match_status: affected, fixed_version: "4.2.1"}
+          - {package_key: p1, osv_id: PYSEC-2023-1, match_status: unverified, fixed_version: null}
+          - {package_key: p1, osv_id: GHSA-bbbb, match_status: not_affected, fixed_version: null}
+      - input: ref('stg_osv_vulnerabilities')
+        rows:
+          - {osv_id: GHSA-aaaa, vulnerability_id: CVE-2023-0001, is_withdrawn: false}
+          - {osv_id: PYSEC-2023-1, vulnerability_id: CVE-2023-0001, is_withdrawn: false}
+          - {osv_id: GHSA-bbbb, vulnerability_id: GHSA-bbbb, is_withdrawn: false}
+    expect:
+      rows:
+        - {package_key: p1, vulnerability_id: CVE-2023-0001, match_status: affected, fixed_version: "4.2.1"}
+        - {package_key: p1, vulnerability_id: GHSA-bbbb, match_status: not_affected, fixed_version: null}
+
+  - name: test_same_cve_from_three_sources_is_one_vulnerability
+    description: A CVE present in KEV, NVD and OSV yields a single canonical row with all source flags.
+    model: int_vulnerability_enrichment
+    given:
+      - input: ref('stg_cisa_kev')
+        rows:
+          - {cve_id: CVE-2021-44228, vendor_project: Apache, product: Log4j2, vulnerability_name: Log4Shell, is_ransomware_related: true}
+      - input: ref('stg_nvd_cves')
+        rows:
+          - {cve_id: CVE-2021-44228, description: JNDI lookup RCE, cvss_base_score: 10.0, is_rejected: false}
+          - {cve_id: CVE-2099-0001, description: Rejected entry, is_rejected: true}
+      - input: ref('stg_osv_vulnerabilities')
+        rows:
+          - {osv_id: GHSA-jfh8-c2jp-5v3q, cve_id: CVE-2021-44228, vulnerability_id: CVE-2021-44228, is_withdrawn: false}
+      - input: ref('stg_nvd_cpe_matches')
+        format: sql
+        rows: |
+          select null::varchar as cve_id, null::varchar as cpe_part, null::varchar as vendor, null::varchar as product
+          where false
+      - input: ref('stg_epss_scores')
+        rows:
+          - {cve_id: CVE-2021-44228, score_date: 2026-11-15, epss_score: 0.97}
+          - {cve_id: CVE-2021-44228, score_date: 2026-11-16, epss_score: 0.99}
+    expect:
+      rows:
+        - {vulnerability_id: CVE-2021-44228, is_kev: true, in_nvd: true, in_osv: true, kev_ransomware: true, epss_score: 0.99, vendor: Apache}

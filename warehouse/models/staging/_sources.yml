@@ -1,0 +1,41 @@
+version: 2
+
+sources:
+  - name: raw
+    description: Validated source records loaded by the Python pipeline (cybersentinel/loading/warehouse.py).
+    schema: raw
+    tables:
+      - name: cisa_kev
+        description: CISA Known Exploited Vulnerabilities, one row per CVE (full catalog each run).
+        columns:
+          - name: cve_id
+            data_tests: [unique, not_null]
+      - name: nvd_cves
+        description: NVD CVE records, latest version of each CVE.
+        columns:
+          - name: cve_id
+            data_tests: [unique, not_null]
+      - name: nvd_cpe_matches
+        description: Vendor/product pairs from NVD CPE configurations.
+      - name: osv_vulnerabilities
+        description: OSV advisories returned for the watchlist.
+        columns:
+          - name: osv_id
+            data_tests: [unique, not_null]
+      - name: osv_affected_ranges
+        description: Affected version ranges of OSV advisories.
+      - name: watchlist_packages
+        description: The watchlist evaluated in the latest OSV run.
+      - name: watchlist_matches
+        description: Our range verdict for each (watched package, advisory) pair.
+      - name: epss_scores
+        description: Daily EPSS scores, one row per CVE per day (history kept).
+
+  - name: ops
+    description: Operational state of the pipeline (separate DuckDB file attached read-only).
+    database: ops_db
+    schema: ops
+    tables:
+      - name: pipeline_runs
+      - name: source_runs
+      - name: quarantine

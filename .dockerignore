@@ -1,0 +1,17 @@
+.git
+.github
+.venv
+.env
+data
+data-replay
+docs
+tests
+scripts
+warehouse/target
+warehouse/logs
+**/__pycache__
+**/*.duckdb*
+*.zip
+*.pdf
+.ruff_cache
+.pytest_cache

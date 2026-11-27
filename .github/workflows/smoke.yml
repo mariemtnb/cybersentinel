@@ -1,0 +1,27 @@
+# Live smoke test against the real public APIs. Not required for merging: an API outage
+# must not block development. Runs weekly and on demand; a failure here means "a source
+# changed or is down", which the team then investigates.
+name: live-api-smoke
+
+on:
+  schedule:
+    - cron: "0 7 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements-dev.txt && pip install -e .
+      - name: Query each live API once and validate the answer against its contract
+        env:
+          NVD_API_KEY: ${{ secrets.NVD_API_KEY }}  # optional; reduced-rate mode without it
+        run: pytest -m live -q -p no:cacheprovider tests/live

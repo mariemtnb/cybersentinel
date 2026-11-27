@@ -1,0 +1,41 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cybersentinel"
+version = "0.1.0"
+description = "Cyber threat intelligence and vulnerability prioritization DataOps platform (academic project)."
+requires-python = ">=3.12"
+readme = "README.md"
+
+[tool.setuptools.packages.find]
+include = ["cybersentinel*"]
+
+[tool.ruff]
+line-length = 110
+target-version = "py312"
+extend-exclude = ["warehouse/target", "warehouse/dbt_packages", "data"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "S608"]
+ignore = ["E501"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S608"]
+# Identifiers there come from code constants and are checked by _check_identifiers / fixed column
+# lists; values are always passed as parameters or registered DataFrames, never formatted into SQL.
+"cybersentinel/loading/warehouse.py" = ["S608"]
+"cybersentinel/loading/ops.py" = ["S608"]
+# WHERE clauses are assembled from fixed SQL fragments containing only `?` placeholders;
+# every user-supplied filter value is passed as a bound parameter.
+"dashboard/pages/*.py" = ["S608"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+    "live: calls the real public APIs (network required, excluded from the mandatory CI job)",
+    "integration: runs the whole pipeline on recorded responses (offline, ~10 s per run)",
+]
+addopts = "-m 'not live'"
+filterwarnings = ["ignore::DeprecationWarning"]

@@ -1,0 +1,66 @@
+# Data contract — CISA Known Exploited Vulnerabilities (flattened, one row per CVE).
+# Format: Open Data Contract Standard v3 (same format as TP4's contracts/orders.yaml).
+# This file is executable: cybersentinel/validation/contracts.py turns it into a Pandera schema
+# that runs on every ingestion, and CI runs `datacontract test` on the fixture server.
+version: 1.0.0
+kind: DataContract
+apiVersion: v3.0.2
+id: cisa_kev
+name: CISA Known Exploited Vulnerabilities
+status: active
+description:
+  purpose: Vulnerabilities that CISA has confirmed as exploited in the wild. Confirmed exploitation, not a prediction.
+  usage: Feeds the KEV signal of the prioritization engine and the "new KEV additions" alerts.
+servers:
+  - server: ci
+    type: local
+    format: parquet
+    path: ./tests/fixtures/contracts/cisa_kev.parquet
+customProperties:
+  - property: primaryKey
+    value: [cve_id]
+  - property: maxRejectRate
+    value: 0.02
+  - property: minRows
+    value: 1
+schema:
+  - name: cisa_kev
+    physicalType: table
+    properties:
+      - name: cve_id
+        logicalType: string
+        required: true
+        unique: true
+        logicalTypeOptions:
+          pattern: "^CVE-\\d{4}-\\d{4,}$"
+      - name: vendor_project
+        logicalType: string
+        required: true
+      - name: product
+        logicalType: string
+        required: true
+      - name: vulnerability_name
+        logicalType: string
+      - name: date_added
+        logicalType: date
+        required: true
+        logicalTypeOptions:
+          minimum: "2021-11-01"
+      - name: short_description
+        logicalType: string
+      - name: required_action
+        logicalType: string
+      - name: due_date
+        logicalType: date
+      - name: known_ransomware_campaign_use
+        logicalType: string
+        customProperties:
+          - property: allowedValues
+            value: ["Known", "Unknown"]
+      - name: notes
+        logicalType: string
+      - name: cwes
+        logicalType: string
+      - name: catalog_version
+        logicalType: string
+        required: true
